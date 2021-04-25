@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -136,6 +139,82 @@ namespace TryashtarUtils.Forms
                 else
                     return false;
             }
+        }
+
+        public static DataObject Merge(DataObject obj1, DataObject obj2)
+        {
+            var result = new DataObject();
+
+            // naive transfer
+            // gets (hopefully) everything, but replaces rather than combining
+            var formats1 = obj1.GetFormats();
+            var formats2 = obj2.GetFormats();
+            foreach (var format in formats1)
+            {
+                var data = obj1.GetData(format);
+                result.SetData(format, data);
+            }
+            foreach (var format in formats2)
+            {
+                var data = obj2.GetData(format);
+                result.SetData(format, data);
+            }
+
+            // specific mergeable transfers
+            var text1 = obj1.GetText();
+            var text2 = obj2.GetText();
+            var text_result = Merge(text1, text2);
+            if (text_result != null)
+                result.SetText(text_result);
+
+            var file1 = obj1.GetFileDropList();
+            var file2 = obj2.GetFileDropList();
+            var file_result = Merge(file1, file2);
+            if (file_result != null)
+                result.SetFileDropList(file_result);
+
+            return result;
+        }
+
+        private static string Merge(string str1, string str2)
+        {
+            if (str1 == null)
+                return str2;
+            if (str2 == null)
+                return str1;
+            return str1 + Environment.NewLine + str2;
+        }
+
+        private static StringCollection Merge(StringCollection col1, StringCollection col2)
+        {
+            if (col1 == null)
+                return col2;
+            if (col2 == null)
+                return col1;
+            var result = new StringCollection();
+            result.AddRange(col1.Cast<string>().ToArray());
+            result.AddRange(col2.Cast<string>().ToArray());
+            return result;
+        }
+
+        public static string ExceptionMessage(Exception exception)
+        {
+            string message = exception.Message;
+            if (exception is AggregateException aggregate)
+                message += Environment.NewLine + String.Join(Environment.NewLine, aggregate.InnerExceptions.Select(ExceptionMessage));
+            else
+            {
+                if (exception is WebException web && web.Response != null)
+                {
+                    using (var reader = new StreamReader(web.Response.GetResponseStream()))
+                    {
+                        message += Environment.NewLine + reader.ReadToEnd();
+                    }
+                }
+                if (exception.InnerException != null)
+                    message += Environment.NewLine + ExceptionMessage(exception.InnerException);
+            }
+            return message;
         }
     }
 }
