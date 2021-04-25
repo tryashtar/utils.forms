@@ -27,9 +27,15 @@ namespace TryashtarUtils.Forms
         }
 
         // list of file extensions to a filter string for OpenFileDialog
-        public static string ToFilter(IEnumerable<string> extensions)
+        public static string GenerateFilter(string description, IEnumerable<string> extensions)
         {
-            return String.Join("; ", extensions.Select(x => "*" + x));
+            string result = description + "|";
+            foreach (string extension in extensions)
+            {
+                result += "*" + extension + ";";
+            }
+            result += "|All Files|*.*";
+            return result;
         }
 
         // get flattened list of all controls on a parent container
@@ -215,6 +221,20 @@ namespace TryashtarUtils.Forms
                     message += Environment.NewLine + ExceptionMessage(exception.InnerException);
             }
             return message;
+        }
+
+        // fall back if unsupported
+        public static DialogResult ShowCompatibleOpenDialog(OpenFileDialog d)
+        {
+            try
+            {
+                return d.ShowDialog();
+            }
+            catch (COMException)
+            {
+                d.AutoUpgradeEnabled = false;
+                return d.ShowDialog();
+            }
         }
     }
 }
