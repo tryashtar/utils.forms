@@ -9,6 +9,10 @@
     <AssemblyName>TryashtarUtils.Forms</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft-Windows10-APICodePack-Core" Version="1.1.5" />
+    <PackageReference Include="WinCopies.WindowsAPICodePack.Shell" Version="2.1.1" />
+  </ItemGroup>
+  <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
