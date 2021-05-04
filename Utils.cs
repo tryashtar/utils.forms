@@ -203,26 +203,6 @@ namespace TryashtarUtils.Forms
             return result;
         }
 
-        public static string ExceptionMessage(Exception exception)
-        {
-            string message = exception.Message;
-            if (exception is AggregateException aggregate)
-                message += Environment.NewLine + String.Join(Environment.NewLine, aggregate.InnerExceptions.Select(ExceptionMessage));
-            else
-            {
-                if (exception is WebException web && web.Response != null)
-                {
-                    using (var reader = new StreamReader(web.Response.GetResponseStream()))
-                    {
-                        message += Environment.NewLine + reader.ReadToEnd();
-                    }
-                }
-                if (exception.InnerException != null)
-                    message += Environment.NewLine + ExceptionMessage(exception.InnerException);
-            }
-            return message;
-        }
-
         // fall back if unsupported
         public static DialogResult ShowCompatibleOpenDialog(OpenFileDialog d)
         {
